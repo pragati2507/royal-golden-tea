@@ -10,7 +10,12 @@ type OrderPayload = {
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return NextResponse.json({ error: "Ordering is being configured. Please try again soon." }, { status: 503 });
+  if (!url || !key) {
+    return NextResponse.json(
+      { error: "Order service configuration is missing. Please contact Royal Golden Mix support." },
+      { status: 503 },
+    );
+  }
 
   const body = (await request.json()) as OrderPayload;
   const phone = body.phone?.replace(/\D/g, "") ?? "";
@@ -32,8 +37,11 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    console.error("Order submission failed", error.code);
-    return NextResponse.json({ error: "We could not place your order. Please try again." }, { status: 500 });
+    console.error("Order submission failed", error.code, error.message);
+    return NextResponse.json(
+      { error: `Order could not be saved: ${error.message}` },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ orderNumber: data });
