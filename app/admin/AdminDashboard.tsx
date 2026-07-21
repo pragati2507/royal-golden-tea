@@ -17,7 +17,14 @@ export default function AdminDashboard({ orders }: { orders: AdminOrder[] }) {
     const quote = (value: unknown) => `"${String(value ?? "").replaceAll('"','""')}"`;
     const rows = filtered.map((order) => [order.order_number,order.status,order.customers?.name,order.customers?.phone,formatAddress(order),order.bundle,order.quantity,order.notes,new Date(order.created_at).toISOString()]);
     const blob = new Blob([[headings, ...rows].map((row) => row.map(quote).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `royal-golden-orders-${new Date().toISOString().slice(0,10)}.csv`; link.click(); URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `royal-golden-orders-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
   }
 
   return <><div className="admin-toolbar"><label>Search orders<input type="search" placeholder="Name, phone or order number" value={search} onChange={(e) => setSearch(e.target.value)} /></label><label>Status<select value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">All statuses</option>{["new","confirmed","dispatched","delivered","cancelled"].map((item) => <option key={item}>{item}</option>)}</select></label><button className="button" onClick={exportCsv} disabled={!filtered.length}>Export CSV</button></div>{filtered.length ? <div className="orders-list">{filtered.map((order) => <article className="order-card" key={order.id}><div className="order-card-head"><strong>{order.order_number}</strong><span className={`status status-${order.status}`}>{order.status}</span></div><div className="order-details"><p><small>Customer</small>{order.customers?.name}</p><p><small>Phone</small>{order.customers?.phone}</p><p className="wide"><small>Complete address</small>{formatAddress(order)}</p><p><small>Product</small>{order.bundle}</p><p><small>Quantity</small>{order.quantity}</p><p className="wide"><small>Notes</small>{order.notes || "—"}</p><p className="wide"><small>Date and time</small>{new Intl.DateTimeFormat("en-IN", { dateStyle:"medium", timeStyle:"short" }).format(new Date(order.created_at))}</p></div></article>)}</div> : <div className="admin-empty"><h2>No orders found</h2><p>New customer orders will appear here.</p></div>}</>;
