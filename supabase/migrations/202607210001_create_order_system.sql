@@ -37,19 +37,23 @@ alter table public.customers enable row level security;
 alter table public.orders enable row level security;
 alter table public.admin_users enable row level security;
 
+drop policy if exists "Admins can read customers" on public.customers;
 create policy "Admins can read customers"
 on public.customers for select to authenticated
 using (exists (select 1 from public.admin_users where user_id = auth.uid()));
 
+drop policy if exists "Admins can read orders" on public.orders;
 create policy "Admins can read orders"
 on public.orders for select to authenticated
 using (exists (select 1 from public.admin_users where user_id = auth.uid()));
 
+drop policy if exists "Admins can update order status" on public.orders;
 create policy "Admins can update order status"
 on public.orders for update to authenticated
 using (exists (select 1 from public.admin_users where user_id = auth.uid()))
 with check (exists (select 1 from public.admin_users where user_id = auth.uid()));
 
+drop policy if exists "Admins can view their access record" on public.admin_users;
 create policy "Admins can view their access record"
 on public.admin_users for select to authenticated
 using (user_id = auth.uid());
