@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 const storageKey = "royal-golden-exit-offer-seen";
+const claimedStorageKey = "royal-golden-exit-offer-claimed";
 
 export default function ExitOffer() {
   const [open, setOpen] = useState(false);
@@ -11,7 +12,7 @@ export default function ExitOffer() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (sessionStorage.getItem(storageKey)) return;
+    if (localStorage.getItem(claimedStorageKey) || sessionStorage.getItem(storageKey)) return;
     const showOffer = (event: MouseEvent) => {
       if (event.clientY > 8) return;
       sessionStorage.setItem(storageKey, "true");
@@ -37,7 +38,9 @@ export default function ExitOffer() {
       return;
     }
     const message = encodeURIComponent(`Hello, I want to claim ₹20 OFF on my first Royal Golden Mix order. My WhatsApp number is +91 ${digits}.`);
-    window.open(`https://wa.me/?text=${message}`, "_blank", "noopener,noreferrer");
+    const businessNumber = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER?.replace(/\D/g, "") || "";
+    localStorage.setItem(claimedStorageKey, "true");
+    window.open(`https://wa.me/${businessNumber}?text=${message}`, "_blank", "noopener,noreferrer");
     setOpen(false);
   }
 
